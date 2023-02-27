@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname space-invaders-starter) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+#reader(lib "htdp-intermediate-reader.ss" "lang")((modname space-invaders-starter) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
 (require 2htdp/universe)
 (require 2htdp/image)
 
@@ -251,12 +251,84 @@
 ;; missile - change position, remove if off screen, remove it hit invader
 ;; invader - change position, remove if hit by missile, generate new invader
 (check-expect (update G1)
-              (make-tank (+ TANK-SPEED 50) 1))
-(check-expect (update G2)
-              (list (make-invader (+  
+              (make-game empty empty (make-tank (+ TANK-SPEED 50) 1)))
               
-              
-(define (update g) G0)
+(define (update g) g)
+
+#;
+(define (update g)
+  (make-game (advance-invaders (add-invader (filter-invaders (game-invaders g) (game-missiles g))))
+       (advance-missiles (filter-missiles (game-missiles g) (game-invaders g))))
+       (move-tank (game-tank g)))
+
+;; ListOfInvader -> ListOfInvader
+;; move all invaders in list by moving them toward bottom of screen
+(check-expect (advance-invaders LOI-1) empty)
+(check-expect (advance-invaders LOI-2) (list (make-invader (+ INVADER-X-SPEED (invader-x I1))
+                                                           (+ INVADER-Y-SPEED (invader-y I1))
+                                                           (invader-dx I1))))
+                                                           
+;(define (advance-invaders loi) loi)
+
+
+(define (advance-invaders loi)
+  (cond [(empty? loi) loi]
+        [else (cons (advance-invader (first loi))
+                   (advance-invaders (rest loi)))]))
+
+
+;; Invader -> Invader
+;; update invader x and y position by INVADER-X-SPEED and INVADER-Y-SPEED
+;; if invader hits side then reverse direction
+;; !!!
+(check-expect (advance-invader (make-invader 150 100 12))
+              (make-invader (+ INVADER-X-SPEED 150) (+ INVADER-Y-SPEED 100) 12))
+(check-expect (advance-invader (make-invader 150 100 -12))
+              (make-invader (- 150 INVADER-X-SPEED) (+ INVADER-Y-SPEED 100) -12))
+(check-expect (advance-invader (make-invader WIDTH 100 12))
+              (make-invader (- WIDTH INVADER-X-SPEED) (+ INVADER-Y-SPEED 100) -12))
+(check-expect (advance-invader (make-invader 0 100 -12))
+              (make-invader (+ 0 INVADER-X-SPEED) (+ INVADER-Y-SPEED 100) 12))
+                               
+                              
+;(define (advance-invader i) i)
+
+(define (advance-invader i)
+  (cond [(>= (invader-x i) WIDTH)
+         ((- WIDTH INVAD
+
+
+;; ListOfInvader -> ListOfInvader
+;; add invader randomly at x coordinate
+;; !!!
+
+(define (add-invader loi) loi)
+
+
+;; ListOfInvader ListOfMissile -> ListOfInvader
+;; filters out invaders that have not been hit by missiles
+;; !!!
+
+(define (filter-invaders loi lom) loi)
+
+
+;; ListOfMissile -> ListOfMissile
+;; updates all missiles in list by moving them up the screen
+;; !!!
+
+(define (update-missiles lom) lom)
+
+
+;; ListOfMissile ListOfInvader -> ListOfMissile
+;; filters list of missiles to include only those that haven't hit invaders
+;; !!!
+
+(define (filter-missiles lom loi) lom)
+
+;; Tank -> Tank
+;; updates tank position by TANK-SPEED, if tank dir == 1 -> to right, if tank dir = -1 to left
+
+(define (move-tank t) t)
 
 
 ;;==========END CHECK FUNCTIONS===============
@@ -270,12 +342,6 @@
 ;(define (game-over? g) false) ;stub
 
 ;template from Game
-
-#;
-(define (fn-for-game s)
-  (... (fn-for-loinvader (game-invaders s))
-       (fn-for-lom (game-missiles s))
-       (fn-for-tank (game-tank s))))
 
 (define (game-over? g)
   (if (invaders-at-bottom? (game-invaders g))
@@ -305,10 +371,6 @@
 
 ;(define (invader-at-bottom? i) false)
 ;<template from Invader>
-
-#;
-(define (fn-for-invader invader)
-  (... (invader-x invader) (invader-y invader) (invader-dx invader)))
 
 (define (invader-at-bottom? i)
   (>= (invader-y i) HEIGHT))
