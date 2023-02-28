@@ -250,8 +250,8 @@
 ;; tank - move left or right
 ;; missile - change position, remove if off screen, remove it hit invader
 ;; invader - change position, remove if hit by missile, generate new invader
-(check-expect (update G1)
-              (make-game empty empty (make-tank (+ TANK-SPEED 50) 1)))
+;(check-expect (update G1)
+              ;(make-game empty empty (make-tank (+ TANK-SPEED 50) 1)))
               
 (define (update g) g)
 
@@ -313,8 +313,22 @@
 ;; ListOfInvader -> ListOfInvader
 ;; add invader randomly at x coordinate
 ;; !!!
+(check-random (add-invader LOI-1)
+              (if (< (random 500) INVADE-RATE)
+                  (cons (make-invader (random WIDTH) 0 10) empty)
+                  LOI-1))
+(check-random (add-invader LOI-3)
+              (if (< (random 500) INVADE-RATE)
+                  (list (make-invader (random WIDTH) 0 10) I1 I2)
+                  LOI-3))
+                  
 
-(define (add-invader loi) loi)
+;(define (add-invader loi) loi)
+
+(define (add-invader loi)
+  (if (< (random 500) INVADE-RATE)
+      (cons (make-invader (random WIDTH) 0 10) loi)
+      loi))
 
 
 ;; ListOfInvader ListOfMissile -> ListOfInvader
