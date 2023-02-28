@@ -258,14 +258,14 @@
 #;
 (define (update g)
   (make-game (advance-invaders (add-invader (filter-invaders (game-invaders g) (game-missiles g))))
-       (advance-missiles (filter-missiles (game-missiles g) (game-invaders g))))
-       (move-tank (game-tank g)))
+             (advance-missiles (filter-missiles (game-missiles g) (game-invaders g))))
+  (move-tank (game-tank g)))
 
 ;; ListOfInvader -> ListOfInvader
 ;; move all invaders in list by moving them toward bottom of screen
 (check-expect (advance-invaders LOI-1) empty)
-(check-expect (advance-invaders LOI-2) (list (make-invader (+ INVADER-X-SPEED (invader-x I1))
-                                                           (+ INVADER-Y-SPEED (invader-y I1))
+(check-expect (advance-invaders LOI-2) (list (make-invader (+ (invader-x I1) (* INVADER-X-SPEED (abs (invader-dx I1))))
+                                                           (+ (invader-y I1) (* INVADER-Y-SPEED (abs (invader-dx I1))))
                                                            (invader-dx I1))))
                                                            
 ;(define (advance-invaders loi) loi)
@@ -274,28 +274,40 @@
 (define (advance-invaders loi)
   (cond [(empty? loi) loi]
         [else (cons (advance-invader (first loi))
-                   (advance-invaders (rest loi)))]))
+                    (advance-invaders (rest loi)))]))
 
 
 ;; Invader -> Invader
-;; update invader x and y position by INVADER-X-SPEED and INVADER-Y-SPEED
+;; update invader x and y position by INVADER-X-SPEED and INVADER-Y-SPEED times invader-dx
 ;; if invader hits side then reverse direction
 ;; !!!
 (check-expect (advance-invader (make-invader 150 100 12))
-              (make-invader (+ INVADER-X-SPEED 150) (+ INVADER-Y-SPEED 100) 12))
+              (make-invader (+ 150 (* INVADER-X-SPEED 12))
+                            (+ 100 (* INVADER-Y-SPEED 12))
+                            12))
 (check-expect (advance-invader (make-invader 150 100 -12))
-              (make-invader (- 150 INVADER-X-SPEED) (+ INVADER-Y-SPEED 100) -12))
+              (make-invader (+ 150 (* -12 INVADER-X-SPEED )) (+ 100 (* 12 INVADER-Y-SPEED)) -12))
 (check-expect (advance-invader (make-invader WIDTH 100 12))
-              (make-invader (- WIDTH INVADER-X-SPEED) (+ INVADER-Y-SPEED 100) -12))
+              (make-invader WIDTH (+ 100 (* 12 INVADER-Y-SPEED)) -12))
 (check-expect (advance-invader (make-invader 0 100 -12))
-              (make-invader (+ 0 INVADER-X-SPEED) (+ INVADER-Y-SPEED 100) 12))
-                               
-                              
+              (make-invader 0 (+ 100 (* 12 INVADER-Y-SPEED)) 12))
+                                                             
 ;(define (advance-invader i) i)
 
 (define (advance-invader i)
   (cond [(>= (invader-x i) WIDTH)
-         ((- WIDTH INVAD
+         (make-invader WIDTH
+                       (+ (invader-y i) (* (abs (invader-dx i)) INVADER-Y-SPEED))
+                       (-(invader-dx i)))]
+        [(<= (invader-x i) 0)
+         (make-invader 0
+                       (+ (invader-y i) (* (abs (invader-dx i)) INVADER-Y-SPEED))
+                       (-(invader-dx i)))]
+        [else
+         (make-invader (+ (invader-x i) (* (invader-dx i) INVADER-X-SPEED))
+                       (+ (invader-y i) (* (abs (invader-dx i)) INVADER-Y-SPEED))
+                       (invader-dx i))]))
+                            
 
 
 ;; ListOfInvader -> ListOfInvader
