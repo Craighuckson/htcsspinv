@@ -158,7 +158,7 @@
 
 ;; Game -> Image
 ;; update position of player, list of enemmies and missiles on screen
-;; !!!
+;; 
 (check-expect (render G0)
               (place-image TANK (tank-x T0) (- HEIGHT TANK-HEIGHT/2) BACKGROUND))
 (check-expect (render G2)
@@ -168,11 +168,6 @@
                
 ;(define (render g) BACKGROUND) stub
 
-#;
-(define (fn-for-game s)
-  (... (fn-for-loinvader (game-invaders s))
-       (fn-for-lom (game-missiles s))
-       (fn-for-tank (game-tank s))))
 
 (define (render g)
   (draw-tank (game-tank g)
@@ -194,7 +189,8 @@
         [else
          (draw-invader (first loi)
                        (draw-invaders (rest loi)))]))
-  
+
+
 
 ;;Invader Image -> Image
 ;; draws an invader at its x and y position on an image
@@ -334,8 +330,17 @@
 ;; ListOfInvader ListOfMissile -> ListOfInvader
 ;; filters out invaders that have not been hit by missiles
 ;; !!!
+(check-expect (filter-invaders LOI-3 LOM-3)
+              (list I2))
+(check-expect (filter-invaders LOI-2 LOM-2)
+              LOI-2)
 
-(define (filter-invaders loi lom) loi)
+;(define (filter-invaders loi lom) loi)
+
+(define (filter-invaders loi)
+  (cond [(empty? loi) empty]
+        [else (... (first loi)
+                   (filter-invaders (rest loi)))]))
 
 
 ;; ListOfMissile -> ListOfMissile
