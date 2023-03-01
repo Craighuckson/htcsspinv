@@ -247,7 +247,7 @@
 ;; missile - change position, remove if off screen, remove it hit invader
 ;; invader - change position, remove if hit by missile, generate new invader
 ;(check-expect (update G1)
-              ;(make-game empty empty (make-tank (+ TANK-SPEED 50) 1)))
+;(make-game empty empty (make-tank (+ TANK-SPEED 50) 1)))
               
 (define (update g) g)
 
@@ -337,10 +337,48 @@
 
 ;(define (filter-invaders loi lom) loi)
 
-(define (filter-invaders loi)
+(define (filter-invaders loi lom)
   (cond [(empty? loi) empty]
-        [else (... (first loi)
-                   (filter-invaders (rest loi)))]))
+        [else (if (hit-by-missiles? (first loi) lom)
+                  (filter-invaders (rest loi) lom)
+                  (cons (first loi) (filter-invaders (rest loi) lom)))]))
+
+;; Invader ListOfMissile -> Boolean
+;; checks if invader hit by a missile (within 10 pixels)
+(check-expect (hit-by-missiles? (make-invader 100 100 12) (list (make-missile 200 200)
+                                                                    (make-missile 50 50)))
+              false)
+(check-expect (hit-by-missiles? (make-invader 100 100 12) (list (make-missile 105 107)
+                                                                (make-missile 50 50)))
+              true)
+
+;(define (not-hit-by-missiles? i lom) false)
+
+(define (hit-by-missiles? i lom)
+  (cond [(empty? lom) false]
+        [else
+         (or (hit-invader? i (first lom))
+             (hit-by-missiles? i (rest lom)))]))
+
+;; Invader Missile -> Boolean
+;; checks if invader and missile have collided (ie are within 10 pixels of one another)
+(check-expect (hit-invader? (make-invader 10 10 12) (make-missile 50 50))
+              false)
+(check-expect (hit-invader? (make-invader 200 200 10) (make-missile 196 198))
+              true)
+(check-expect (hit-invader? (make-invader 200 200 10) (make-missile 189 189))
+              false)
+(check-expect (hit-invader? (make-invader 200 200 10) (make-missile 193 185))
+              false)
+(check-expect (hit-invader? (make-invader 200 200 10) (make-missile 187 195))
+              false)
+           
+
+;(define (hit-invader? i m) false) stub
+
+(define (hit-invader? i m)
+  (and (<= (abs (- (invader-x i) (missile-x m))) HIT-RANGE)
+       (<= (abs (- (invader-y i) (missile-y m))) HIT-RANGE)))
 
 
 ;; ListOfMissile -> ListOfMissile
