@@ -254,8 +254,8 @@
 #;
 (define (update g)
   (make-game (advance-invaders (add-invader (filter-invaders (game-invaders g) (game-missiles g))))
-             (advance-missiles (filter-missiles (game-missiles g) (game-invaders g))))
-  (move-tank (game-tank g)))
+             (advance-missiles (filter-missiles (game-missiles g) (game-invaders g)))
+             (move-tank (game-tank g))))
 
 ;; ListOfInvader -> ListOfInvader
 ;; move all invaders in list by moving them toward bottom of screen
@@ -346,13 +346,13 @@
 ;; Invader ListOfMissile -> Boolean
 ;; checks if invader hit by a missile (within 10 pixels)
 (check-expect (hit-by-missiles? (make-invader 100 100 12) (list (make-missile 200 200)
-                                                                    (make-missile 50 50)))
+                                                                (make-missile 50 50)))
               false)
 (check-expect (hit-by-missiles? (make-invader 100 100 12) (list (make-missile 105 107)
                                                                 (make-missile 50 50)))
               true)
 
-;(define (not-hit-by-missiles? i lom) false)
+;(define (hit-by-missiles? i lom) false)
 
 (define (hit-by-missiles? i lom)
   (cond [(empty? lom) false]
@@ -383,21 +383,82 @@
 
 ;; ListOfMissile -> ListOfMissile
 ;; updates all missiles in list by moving them up the screen
-;; !!!
+(check-expect (advance-missiles (list (make-missile 50 50)
+                                      (make-missile 100 100)))
+              (list (make-missile 50 51)
+                    (make-missile 100 101)))
+                             
+;(define (advance-missiles lom) lom) stub
 
-(define (update-missiles lom) lom)
+(define (advance-missiles lom)
+  (cond [(empty? lom) lom]
+        [else (cons (advance-missile (first lom))
+                    (advance-missiles (rest lom)))]))
+
+;;Missile -> Missile
+;; move missile up the screen one pixel
+(check-expect (advance-missile (make-missile 100 100))
+              (make-missile 100 101))
+                              
+;(define (advance-missile m) m)
+
+(define (advance-missile m)
+  (make-missile (missile-x m) (+ (missile-y m) 1)))
 
 
 ;; ListOfMissile ListOfInvader -> ListOfMissile
 ;; filters list of missiles to include only those that haven't hit invaders
-;; !!!
+(check-expect (filter-missiles (list (make-missile 100 100)
+                                     (make-missile 50 50))
+                               (list (make-invader 100 91 10)
+                                     (make-invader 305 40 -12)))
+              (list (make-missile 50 50)))
+                                    
 
-(define (filter-missiles lom loi) lom)
+;(define (filter-missiles lom loi) lom)
+
+(define (filter-missiles lom loi)
+  (cond [(empty? lom) lom]
+        [else (if (hit-invaders? (first lom) loi)
+                  (filter-missiles (rest lom) loi)
+                  (cons (first lom) (filter-missiles (rest lom) loi)))]))
+
+
+;;Missile ListOfInvader -> Boolean
+;; checks if missile has come into contact with any from the list of invaders?
+(check-expect (hit-invaders? (make-missile 300 100)
+                             (list (make-invader 200 200 10)
+                                   (make-invader 50 50 -10)))
+              false)
+(check-expect (hit-invaders? (make-missile 300 100)
+                             (list (make-invader 305 105 6)
+                                   (make-invader 50 50 10)))
+              true)
+
+              
+;(define (hit-invaders? m loi) false)
+
+(define (hit-invaders? m loi)
+  (cond [(empty? loi) false]
+        [else
+         (or (hit-invader? (first loi) m)
+             (hit-invaders? m (rest loi)))]))
+  
+                  
 
 ;; Tank -> Tank
 ;; updates tank position by TANK-SPEED, if tank dir == 1 -> to right, if tank dir = -1 to left
+(check-expect (move-tank (make-tank 100 1))
+              (make-tank 101 1))
+(check-expect (move-tank (make-tank 100 -1))
+              (make-tank 99 -1))
 
-(define (move-tank t) t)
+;(define (move-tank t) t)
+
+(define (move-tank t)
+  (if (= (tank-dir t) 1)
+      (make-tank (+ (tank-x t) 1) 1)
+      (make-tank (- (tank-x t) 1) -1)))
 
 
 ;;==========END CHECK FUNCTIONS===============
